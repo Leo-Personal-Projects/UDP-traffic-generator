@@ -1,4 +1,4 @@
-# FPGA UDP Traffic Generator (Nexys A7)
+# FPGA UDP Traffic Generator (Nexys A7) - Leo Serodio
 
 ## Overview
 
