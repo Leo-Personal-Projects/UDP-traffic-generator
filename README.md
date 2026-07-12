@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project implements a hardware UDP traffic generator on a Xilinx Nexys A7 (Artix-7) FPGA. UDP packets are generated entirely in hardware and transmitted over a 10/100 Mbps Ethernet connection, where they can be captured and analyzed on a host computer using Wireshark.
+This project implements a hardware UDP traffic generator on a Xilinx Nexys A7 (Artix-7) FPGA. UDP packets are generated entirely in hardware and transmitted over a 10/100 Mbps Ethernet connection, where they can be captured by apps like wireshark. 
 
 Instead of building an entire networking stack from scratch, I integrated two existing open-source projects:
 
