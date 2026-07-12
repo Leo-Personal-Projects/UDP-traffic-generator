@@ -2,89 +2,82 @@
 
 ## Overview
 
-This project implements a hardware UDP traffic generator on a Xilinx Nexys A7 (Artix-7) FPGA. UDP packets are generated entirely in hardware and transmitted over a 10/100 Mbps Ethernet connection, where they can be received and analyzed on a host computer using tools such as Wireshark.
+This project implements a hardware UDP traffic generator on a Xilinx Nexys A7 (Artix-7) FPGA. UDP packets are generated entirely in hardware and transmitted over a 10/100 Mbps Ethernet connection, where they can be captured and analyzed on a host computer using Wireshark.
 
-To build the networking stack, this project integrates two open-source implementations:
+Instead of building an entire networking stack from scratch, I integrated two existing open-source projects:
 
-* **Alex Forencich's `verilog-ethernet`** for the IPv4 and UDP protocol layers.
-* **Nexys 4 DDR Ethernet MAC** for the Ethernet MAC and RMII interface required by the Nexys A7's onboard Ethernet PHY.
+- **Alex Forencich's `verilog-ethernet`** for the IPv4 and UDP protocol layers.
+- **Nexys 4 DDR Ethernet MAC** for the Ethernet MAC and RMII interface used by the Nexys A7's onboard Ethernet PHY.
 
-Both projects are included in the `udp_stack_infrastructure/` directory.
+Both projects are included under `udp_stack_infrastructure/`.
 
 ---
 
-## My Contributions
+## What I Worked On
 
-The primary focus of this project was integrating the networking infrastructure and developing the hardware responsible for generating application-layer UDP traffic.
+The goal of this project was to integrate the networking stack with the Ethernet MAC and develop the application-layer hardware responsible for generating UDP traffic.
 
 ### `top.v`
 
-Modified to integrate the complete networking system by:
+Modified the top-level design to:
 
-* instantiating the Ethernet MAC
-* instantiating the UDP/IP wrapper
-* connecting the custom traffic generator
-* connecting FPGA switches and pushbuttons to the application
-* routing status information to the onboard LEDs
-
----
+- Instantiate the Ethernet MAC and UDP/IP wrapper
+- Connect the custom traffic generator to the UDP stack
+- Map FPGA switches and pushbuttons to the application
+- Route status information to the onboard LEDs
 
 ### `udp_complete_wrapper.v`
 
-Modified to expose a simple application interface for transmitting UDP packets. This wrapper connects the custom traffic generator to the underlying UDP/IP stack.
-
----
+Modified the wrapper to expose a simple interface between the application logic and the UDP/IP stack, allowing the traffic generator to transmit UDP packets.
 
 ### `udp_traffic_generator.sv`
 
-Designed and implemented a custom UDP traffic generator responsible for:
+Implemented a custom UDP traffic generator that handles:
 
-* finite state machine (FSM) control
-* configurable packet count
-* payload generation
-* packet sequencing
-* AXI-Stream transmit interface
-* UDP transmission requests to the networking stack
-
----
+- Packet generation using a finite state machine
+- Configurable packet count
+- Payload generation
+- Packet sequencing
+- AXI-Stream transmit handshaking
+- Sending packet data into the UDP stack
 
 ### `udp_traffic_generator_tb.sv`
 
 Created a SystemVerilog testbench to verify:
 
-* FSM behavior
-* packet counter operation
-* payload generation
-* packet sequencing
-* AXI-Stream handshake operation
+- FSM operation
+- Packet counter behavior
+- Payload generation
+- Packet sequencing
+- AXI-Stream handshake logic
 
 ---
 
 ## Features
 
-* Hardware UDP packet generation
-* Configurable packet count using FPGA switches
-* Pushbutton-controlled packet transmission
-* Custom payload generation
-* Sequence number embedded in each packet
-* UDP transmission over Ethernet
-* Successfully synthesized and executed on a Nexys A7 FPGA
-* Verified using Wireshark packet captures
+- Hardware UDP packet generation
+- Configurable packet count using FPGA switches
+- Pushbutton-controlled packet transmission
+- Custom payload generation
+- Sequence number embedded in every packet
+- UDP transmission over Ethernet
+- Successfully synthesized and tested on a Nexys A7 FPGA
+- Packet transmission verified using Wireshark
 
 ---
 
 ## Technologies
 
-* SystemVerilog
-* Xilinx Vivado
-* Xilinx Artix-7 FPGA
-* Nexys A7 Development Board
-* RMII Ethernet
-* Ethernet MAC
-* IPv4
-* UDP
-* AXI-Stream
-* Wireshark
+- SystemVerilog
+- Xilinx Vivado
+- Xilinx Artix-7 FPGA
+- Nexys A7 Development Board
+- RMII Ethernet
+- Ethernet MAC
+- IPv4
+- UDP
+- AXI-Stream
+- Wireshark
 
 ---
 
@@ -93,7 +86,7 @@ Created a SystemVerilog testbench to verify:
 ```text
 rtl/
     top.v
-	debounce.v
+    debounce.v
     udp_complete_wrapper.v
     udp_traffic_generator.sv
 
@@ -102,7 +95,7 @@ simulation/
 
 udp_stack_infrastructure/
     verilog-ethernet/
-    nexys4_ddr_ethernet_mac/
+    Nexys-4-DDR-Ethernet-Mac/
 
 constraints/
     *.xdc
