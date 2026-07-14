@@ -1,85 +1,57 @@
-# FPGA UDP Traffic Generator (Nexys A7) - Leo Serodio
+# FPGA UDP Traffic Generator (Nexys A7)
 
-## Overview
+This project implements a UDP traffic generator on a Xilinx Nexys A7 (Artix-7) FPGA. UDP packets are generated completely in hardware and transmitted over the board's 10/100 Mbps Ethernet interface, where they can be captured and inspected in Wireshark.
 
-This project implements a hardware UDP traffic generator on a Xilinx Nexys A7 (Artix-7) FPGA. UDP packets are generated entirely in hardware and transmitted over a 10/100 Mbps Ethernet connection, where they can be captured by apps like wireshark. 
+Rather than writing an entire networking stack from scratch, I integrated two open-source projects into the design:
 
-Instead of building an entire networking stack from scratch, I integrated two existing open-source projects:
+- Alex Forencich's `verilog-ethernet` for the IPv4 and UDP protocol stack
+- Nexys 4 DDR Ethernet MAC for the Ethernet MAC and RMII interface
 
-- **Alex Forencich's `verilog-ethernet`** for the IPv4 and UDP protocol layers.
-- **Nexys 4 DDR Ethernet MAC** for the Ethernet MAC and RMII interface used by the Nexys A7's onboard Ethernet PHY.
+Both are included in the `udp_stack_infrastructure/` directory.
 
-Both projects are included under `udp_stack_infrastructure/`.
+## My Contributions
 
----
-
-## What I Worked On
-
-The goal of this project was to integrate the networking stack with the Ethernet MAC and develop the application-layer hardware responsible for generating UDP traffic.
+Most of my work focused on integrating the networking components and building the application logic that generates UDP traffic.
 
 ### `top.v`
 
-Modified the top-level design to:
-
-- Instantiate the Ethernet MAC and UDP/IP wrapper
-- Connect the custom traffic generator to the UDP stack
-- Map FPGA switches and pushbuttons to the application
-- Route status information to the onboard LEDs
+- Connected the Ethernet MAC and UDP/IP stack
+- Integrated the custom UDP traffic generator
+- Connected FPGA switches, buttons, and LEDs for user control and status
 
 ### `udp_complete_wrapper.v`
 
-Modified the wrapper to expose a simple interface between the application logic and the UDP/IP stack, allowing the traffic generator to transmit UDP packets.
+Modified the wrapper so the application logic could easily send UDP packets through the networking stack.
 
 ### `udp_traffic_generator.sv`
 
-Implemented a custom UDP traffic generator that handles:
+Designed a finite state machine that:
 
-- Packet generation using a finite state machine
-- Configurable packet count
-- Payload generation
-- Packet sequencing
-- AXI-Stream transmit handshaking
-- Sending packet data into the UDP stack
+- Generates UDP payloads
+- Sends a user-selected number of packets
+- Handles AXI-Stream transmit handshaking
+- Adds a sequence number to each packet before transmission
 
 ### `udp_traffic_generator_tb.sv`
 
-Created a SystemVerilog testbench to verify:
+Built a SystemVerilog testbench to verify the state machine, packet counter, payload generation, and AXI-Stream interface before running on hardware.
 
-- FSM operation
-- Packet counter behavior
-- Payload generation
-- Packet sequencing
-- AXI-Stream handshake logic
+## Results
 
----
+- Successfully synthesized on a Nexys A7 FPGA
+- UDP packets transmitted over Ethernet
+- Packet captures verified in Wireshark
+- Packet count controlled with onboard switches
+- Transmission started using the onboard pushbutton
 
-## Features
-
-- Hardware UDP packet generation
-- Configurable packet count using FPGA switches
-- Pushbutton-controlled packet transmission
-- Custom payload generation
-- Sequence number embedded in every packet
-- UDP transmission over Ethernet
-- Successfully synthesized and tested on a Nexys A7 FPGA
-- Packet transmission verified using Wireshark
-
----
-
-## Technologies
+## Tools Used
 
 - SystemVerilog
 - Xilinx Vivado
-- Xilinx Artix-7 FPGA
-- Nexys A7 Development Board
-- RMII Ethernet
-- Ethernet MAC
-- IPv4
-- UDP
+- Nexys A7 (Artix-7)
+- Ethernet / UDP
 - AXI-Stream
 - Wireshark
-
----
 
 ## Repository Structure
 
