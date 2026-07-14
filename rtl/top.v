@@ -1,3 +1,10 @@
+/* 
+ * File: top.sv
+ * 
+ * This is the top module for the UDP Traffic Generator Project
+ * 
+ */
+
 `timescale 1 ns / 1 ps
 
 module top

@@ -1,3 +1,13 @@
+/* 
+ * File: udp_traffic_generator.sv
+ * 
+ * This file generates and controls the transmission of UDP packets 
+ * to be sent via an FPGA using counters and an FSM.
+ * 
+ * Author: Leo Serodio
+ */
+
+
 `timescale 1ns / 1ps
 `default_nettype none
 
@@ -37,6 +47,9 @@ module udp_traffic_generator (
     localparam logic [15:0] PC_PORT      = 16'd5000;
 
     // Payload is 4 bytes: "P", "K", "T", sequence_number
+    // The reasoning behidn the seq number is so that in wireshark
+    // we can see which packets were lost or if they were sent out of order
+    
     // Make compile-time constant using localparam for better style
     localparam logic [15:0] PAYLOAD_LEN = 16'd4;
     localparam logic [15:0] UDP_LEN     = 16'd8 + PAYLOAD_LEN;
@@ -61,30 +74,32 @@ module udp_traffic_generator (
     logic       ctr_load;
     logic [3:0] curr_packet_count;
 
+    // Counter used to track packet count
     Counter #(4) ctr (
         .D(packet_count),
         .Q(curr_packet_count),
         .en(ctr_en),
         .clear(ctr_clear),
         .load(ctr_load),
-        .up(1'b0),
+        .up(1'b0), // count down
         .clock(clock)
     );
-
-    // Comparator checks if no packets are left
-    logic no_packets_left;
 
     // Tracks which payload byte we are sending
     logic       payload_ctr_en;
     logic       payload_ctr_clear;
     logic [1:0] payload_index;
 
-    always_ff @(posedge clock) begin
-        if (~reset_L || payload_ctr_clear)
-            payload_index <= 2'd0;
-        else if (payload_ctr_en)
-            payload_index <= payload_index + 2'd1;
-    end
+    // Counter used to track the payload byte index within a packet
+    Counter #(2) payload_ctr (
+        .D     (2'd0),
+        .Q     (payload_index),
+        .en    (payload_ctr_en),
+        .clear (payload_ctr_clear || ~reset_L),
+        .load  (1'b0),
+        .up    (1'b1),  // count upward from 0 to 3
+        .clock (clock)
+    );
 
     // Sequence number placed in 4th payload byte
     logic [7:0] seq_num;
@@ -134,7 +149,9 @@ module udp_traffic_generator (
                 if (tx_udp_hdr_ready)
                     next_state = SEND_PAYLOAD;
             end
-
+            // Leave SEND_PAYLOAD only after the final payload byte has been
+            // accepted by the UDP stack through the AXI-Stream handshake (via tready & tvalid)
+            // tvalid is always 1 => tx_udp_payload_axis_tvalid = 1'b1; so just tready matters here
             SEND_PAYLOAD: begin
                 if (tx_udp_payload_axis_tready && payload_index == 2'd3)
                     next_state = DECREMENT;
@@ -189,8 +206,8 @@ module udp_traffic_generator (
 
             SEND_PAYLOAD: begin
                 tx_udp_payload_axis_tvalid = 1'b1;
-                tx_udp_payload_axis_tlast  = (payload_index == 2'd3);
-
+                tx_udp_payload_axis_tlast  = (payload_index == 2'd3); // UDP stack needs to know when last byte occurs
+                // Depending on current payload byte index, we sent corresponding data (Artifically build packet)
                 case (payload_index)
                     2'd0: tx_udp_payload_axis_tdata = 8'h50;    // P
                     2'd1: tx_udp_payload_axis_tdata = 8'h4B;    // K
@@ -220,7 +237,7 @@ module udp_traffic_generator (
 endmodule : udp_traffic_generator
 
 
-// Simple Counter module
+// Simple Counter module (18-240 style)
 module Counter
     #(parameter WIDTH = 4)
      (input  logic [WIDTH-1:0] D,
