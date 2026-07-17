@@ -11,7 +11,7 @@ Both are included in the `udp_stack_infrastructure/` directory.
 
 ## My Contributions
 
-Most of my work focused on integrating the networking components and building the application logic that generates UDP traffic.
+Most of my work focused on integrating the networking components and building the application logic that generates the UDP traffic.
 
 ### `top.v`
 
